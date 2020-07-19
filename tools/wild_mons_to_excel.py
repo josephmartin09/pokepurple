@@ -7,6 +7,7 @@ EXCLUDE_FILES = [
     "nothing.asm",
     "PokemonTower1F.asm",
     "PokemonTower2F.asm",
+    "SeaRoutes.asm",
     "Route21.asm" # Something is goofy with this file, it has two areas worth of mon
 ]
 
@@ -28,10 +29,23 @@ def main():
         mon_file = open(os.path.join(mon_data_dir, f_name), 'r')
         out_csv = open(os.path.join(out_data_dir, out_csv_name), 'w')
         csv_writer = csv.writer(out_csv)
-        csv_writer.writerow(["POKEMON", "LEVEL"])
-        csv_writer.writerow(["", ""])
+
+        # First line should be assembly label.
+        assembly_label = mon_file.readline().strip()
+        csv_writer.writerow([assembly_label, "DO NOT EDIT THIS."])
+
+        # Look for the line with encounter rate
+        encounter_line = mon_file.readline().strip()
+        matches = re.match(r"db \$(\w\w)", encounter_line)
+        if matches:
+            csv_writer.writerow(["Encounter Rate", matches[1]])
+            csv_writer.writerow(["", ""])
+        else:
+            raise RuntimeError("Did not find encounter rate")
 
         # Iterate over each pokemon in the file, writing it to the CSV
+        csv_writer.writerow(["Pokemon", "Level"])
+        csv_writer.writerow(["", ""])
         mon_counter = 0 # Count number of mon in an area
         for line in mon_file:
             line = line.strip()
